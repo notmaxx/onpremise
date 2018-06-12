@@ -1,3 +1,4 @@
 # Add plugins here
 sentry-plugins==8.22.0
 -e git+https://github.com/getsentry/sentry-auth-google.git@52020f577f587595fea55f5d05520f1473deaad1#egg=sentry-auth-google
+-e git+https://github.com/getsentry/sentry-auth-saml2.git#egg=sentry-auth-saml2
