@@ -1,21 +1,41 @@
-REPOSITORY?=sentry-onpremise
-TAG?=latest
+REGISTRY ?= quay.io/
+IMAGE_PREFIX ?= workato
+COMPONENT ?= sentry
+SHORT_NAME ?= $(COMPONENT)
+MUTABLE_VERSION ?= latest
+
+VERSION ?= git-$(shell git rev-parse --short HEAD)
+TS_TAG := $(shell date -u "+%Y-%m-%dT%H-%M-%SZ")
+TAG := "${VERSION}-${TS_TAG}"
+
+IMAGE := ${REGISTRY}${IMAGE_PREFIX}/${SHORT_NAME}:${TAG}
+MUTABLE_IMAGE := ${REGISTRY}${IMAGE_PREFIX}/${SHORT_NAME}:${MUTABLE_VERSION}
 
 OK_COLOR=\033[32;01m
 NO_COLOR=\033[0m
 
-build:
-	@echo "$(OK_COLOR)==>$(NO_COLOR) Building $(REPOSITORY):$(TAG)"
-	@docker build --rm -t $(REPOSITORY):$(TAG) .
+info:
+	@echo "Build tag:       ${VERSION}"
+	@echo "Registry:        ${REGISTRY}"
+	@echo "Immutable tag:   ${IMAGE}"
+	@echo "Mutable tag:     ${MUTABLE_IMAGE}"
 
-$(REPOSITORY)_$(TAG).tar: build
-	@echo "$(OK_COLOR)==>$(NO_COLOR) Saving $(REPOSITORY):$(TAG) > $@"
-	@docker save $(REPOSITORY):$(TAG) > $@
+docker-push: docker-mutable-push docker-immutable-push
 
-push: build
-	@echo "$(OK_COLOR)==>$(NO_COLOR) Pushing $(REPOSITORY):$(TAG)"
-	@docker push $(REPOSITORY):$(TAG)
+docker-immutable-push:
+	docker push ${IMAGE}
 
-all: build push
+docker-mutable-push:
+	docker push ${MUTABLE_IMAGE}
 
-.PHONY: all build push
+docker-build:
+	@docker build --rm -t $(IMAGE) .
+	@docker build --rm -t $(MUTABLE_IMAGE) .
+
+build: docker-build
+
+push: docker-push
+
+all: docker-build docker-push
+
+.PHONY: all docker-build docker-push docker-mutable-push docker-immutable-push docker-push build push

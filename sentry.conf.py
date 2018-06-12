@@ -223,9 +223,15 @@ SENTRY_DIGESTS = 'sentry.digests.backends.redis.RedisBackend'
 # Uploaded media uses these `filestore` settings. The available
 # backends are either `filesystem` or `s3`.
 
-SENTRY_OPTIONS['filestore.backend'] = 'filesystem'
+# SENTRY_OPTIONS['filestore.backend'] = 'filesystem'
+# SENTRY_OPTIONS['filestore.options'] = {
+#     'location': env('SENTRY_FILESTORE_DIR'),
+# }
+SENTRY_OPTIONS['filestore.backend'] = 's3'
 SENTRY_OPTIONS['filestore.options'] = {
-    'location': env('SENTRY_FILESTORE_DIR'),
+    'access_key': env('SENTRY_FILESTORE_S3_ACCESS_KEY'),
+    'secret_key': env('SENTRY_FILESTORE_S3_SECRET_KEY'),
+    'bucket_name': env('SENTRY_FILESTORE_S3_BUCKET_NAME'),
 }
 
 ##############
@@ -296,6 +302,9 @@ if 'SENTRY_RUNNING_UWSGI' not in os.environ and len(secret_key) < 32:
 
 SENTRY_OPTIONS['system.secret-key'] = secret_key
 
+# site prefix
+SENTRY_OPTIONS['system.url-prefix'] = env('SENTRY_URL_PREFIX')
+
 if 'GITHUB_APP_ID' in os.environ:
     GITHUB_EXTENDED_PERMISSIONS = ['repo']
     GITHUB_APP_ID = env('GITHUB_APP_ID')
@@ -304,3 +313,7 @@ if 'GITHUB_APP_ID' in os.environ:
 if 'BITBUCKET_CONSUMER_KEY' in os.environ:
     BITBUCKET_CONSUMER_KEY = env('BITBUCKET_CONSUMER_KEY')
     BITBUCKET_CONSUMER_SECRET = env('BITBUCKET_CONSUMER_SECRET')
+
+GOOGLE_CLIENT_ID = env('SENTRY_SSO_GOOGLE_CLIENT_ID') or ''
+GOOGLE_CLIENT_SECRET = env('SENTRY_SSO_GOOGLE_CLIENT_SECRET') or ''
+
